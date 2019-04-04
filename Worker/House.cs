@@ -8,7 +8,6 @@ namespace Worker
 {
     public class House
     {
-        string Name { get; set; }
         string Adress { get; set; }
         string Price { get; set; }
         string CountOfRooms { get; set; }
