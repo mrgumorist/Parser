@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -22,7 +23,10 @@ namespace Worker
         {
 
         }
-
+        public static void InstanceMethod()
+        {
+            MessageBox.Show("We are start our parsing");
+        }
         private void button1_Click(object sender, EventArgs e)
         {
             using (var fbd = new FolderBrowserDialog())
@@ -31,12 +35,16 @@ namespace Worker
 
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
-                    MessageBox.Show("Directory:" + fbd.SelectedPath);
+                    //MessageBox.Show("Directory:" + fbd.SelectedPath);
                     path = fbd.SelectedPath;
                 }
             }
             filename = Microsoft.VisualBasic.Interaction.InputBox("Enter name of file (Without .excel) ", "Choosing name", "IAMSAMPLE");
-           
+            Thread InstanceCaller = new Thread(
+            new ThreadStart(InstanceMethod));
+
+            // Start the thread.
+            InstanceCaller.Start();
         }
     }
 }
