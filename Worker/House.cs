@@ -12,6 +12,7 @@ namespace Worker
         string Price { get; set; }
         string CountOfRooms { get; set; }
         string Metrazh { get; set; }
+        string Description { get; set; }
         string Link { get; set; }
     }
 }

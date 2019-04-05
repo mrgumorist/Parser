@@ -36,6 +36,8 @@ namespace Worker
             List<string> names2 = new List<string>();
             List<string> price = new List<string>();
             List<string> links = new List<string>();
+            List<string> descriptions = new List<string>();
+            List<string> parameters = new List<string>();
             MessageBox.Show("We are start our parsing");
             using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
             {
@@ -102,7 +104,7 @@ namespace Worker
                 price[i] = price[i].Replace(@"jss206"">", "");
                 price[i] = price[i].Replace(@"</div>", "");
             }
-            MessageBox.Show(price[0]);
+            //MessageBox.Show(price[0]);
             //jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215" tabindex="0" role="button" href="                        " target
             //MessageBox.Show(price[0]);
             patern = @"jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215"" tabindex=""0"" role=""button"" href=(.*?)"" target";
@@ -117,6 +119,54 @@ namespace Worker
                 links[i] = links[i].Replace(@""" target", "");
                 links[i] = "https://www.lun.ua" + links[i];
             }
+            patern = @"<li class=""jss210"">(.*?)</li>";
+            rgx = new Regex(patern);
+            int index = 0;
+            foreach (Match item in rgx.Matches(htmlCode))
+            {
+                if (index == 0)
+                {
+                    parameters.Add(item.Value);
+                    index+=1;
+                }
+                else
+                {
+                    if(parameters[index-1].Contains("м²")==false && item.Value.Contains("м²") == true)
+                    {
+                        parameters.Add(item.Value);
+                        index++;
+                    }
+                    else if(item.Value.Contains("м²") == false && parameters[index-1].Contains("м²") == true)
+                    {
+                        parameters.Add(item.Value);
+                        index++;
+                    }
+                    
+
+
+                }
+                
+                   
+                
+            }
+            //int index = 0;
+            for(int i=0; i<parameters.Count; i++)
+            {
+                        parameters[i] = parameters[i].Replace(@"<li class=""jss210"">", "");
+                        parameters[i] = parameters[i].Replace(@"</li>", "");
+                           
+            }
+            for(int i=0; i<parameters.Count; i++)
+            {
+                if(parameters[i].Contains(@"<!-- -->")==true)
+                parameters[i] = parameters[i].Replace(@"<!-- -->", "");
+
+            }
+            //foreach (var item in parameters)
+            //{
+            //    MessageBox.Show(item);
+            //}
+            MessageBox.Show(parameters.Count.ToString());
             //MessageBox.Show(links.Count.ToString());
             //MessageBox.Show(names.Count.ToString());
             //MessageBox.Show(price.Count.ToString());
