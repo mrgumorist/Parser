@@ -34,6 +34,8 @@ namespace Worker
             List<House> houses = new List<House>();
             List<string> names = new List<string>();
             List<string> names2 = new List<string>();
+            List<string> price = new List<string>();
+            List<string> links = new List<string>();
             MessageBox.Show("We are start our parsing");
             using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
             {
@@ -68,25 +70,53 @@ namespace Worker
                 names[i] = names[i].Replace(@"jss197"">", "");
                 names[i] = names[i].Replace(@"</span>", "");
             }
-            patern = @"jss198"">(.*?)</span>";
+            patern = @"jss198"">, <!-- -->(.*?)</span>";
             rgx = new Regex(patern);
 
             foreach (Match item in rgx.Matches(htmlCode))
             {
                 names2.Add(item.Value);
             }
-            for (int i = 0; i < names.Count; i++)
+            MessageBox.Show(names2.Count.ToString());
+            for (int i = 0; i < names2.Count; i++)
             {
-                names2[i] = names2[i].Replace(@"jss198"">", "");
-                names2[i] = names2[i].Replace(@"</span>", "");
+                    names2[i] = names2[i].Replace(@"jss198"">, <!-- -->", "");
+                    names2[i] = names2[i].Replace(@"</span>", "");
             }
-          for(int i=0; i<names.Count; i++)
+            for(int i=0; i<names.Count; i++)
             {
                 names[i] = names[i] + names2[i];
-                names[i] = names[i].Replace(@"<!-- -->", "");
+                //names[i] = names[i].Replace(@"<!-- -->", "");
             }
-            names2.Clear();
             //MessageBox.Show(names[0]);
+            names2.Clear();
+            patern = @"jss206"">(.*?)</div>";
+            rgx = new Regex(patern);
+
+            foreach (Match item in rgx.Matches(htmlCode))
+            {
+                price.Add(item.Value);
+            }
+            for (int i = 0; i < names.Count; i++)
+            {
+                price[i] = price[i].Replace(@"jss206"">", "");
+                price[i] = price[i].Replace(@"</div>", "");
+            }
+            MessageBox.Show(price[0]);
+            //jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215" tabindex="0" role="button" href="                        " target
+            //MessageBox.Show(price[0]);
+            patern = @"jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215"" tabindex = ""0"" role = ""button"" href = ""(.*?)"" target";
+            rgx = new Regex(patern);
+            foreach (Match item in rgx.Matches(htmlCode))
+            {
+                links.Add(item.Value);
+            }
+            for (int i = 0; i < names.Count; i++)
+            {
+                links[i] = links[i].Replace(@"jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215"" tabindex = ""0"" role = ""button"" href = """, "");
+                links[i] = links[i].Replace(@""" target", "");
+            }
+            MessageBox.Show(links[0]);
             countofpages = value / 30;
             if (countofpages > 100)
             {
