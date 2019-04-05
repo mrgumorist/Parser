@@ -36,8 +36,9 @@ namespace Worker
             List<string> names2 = new List<string>();
             List<string> price = new List<string>();
             List<string> links = new List<string>();
-            List<string> descriptions = new List<string>();
+            List<string> created = new List<string>();
             List<string> parameters = new List<string>();
+            List<string> updates = new List<string>();
             MessageBox.Show("We are start our parsing");
             using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
             {
@@ -166,12 +167,36 @@ namespace Worker
             //{
             //    MessageBox.Show(item);
             //}
-            MessageBox.Show(parameters.Count.ToString());
+            //MessageBox.Show(parameters.Count.ToString());
             //MessageBox.Show(links.Count.ToString());
             //MessageBox.Show(names.Count.ToString());
             //MessageBox.Show(price.Count.ToString());
-
             //MessageBox.Show(links[0]);
+            patern = @"class=""jss207"">(.*?)</div>";
+            rgx = new Regex(patern);
+
+            foreach (Match item in rgx.Matches(htmlCode))
+            {
+                created.Add(item.Value);
+            }
+            for (int i = 0; i < created.Count; i++)
+            {
+                created[i] = created[i].Replace(@"class=""jss207"">", "");
+                created[i] = created[i].Replace(@"</div>", "");
+            }
+            patern = @"""updateTime"":""(.*?)"",""real";
+            rgx = new Regex(patern);
+            foreach (Match item in rgx.Matches(htmlCode))
+            {
+                updates.Add(item.Value);
+            }
+            for (int i = 0; i < updates.Count; i++)
+            {
+                updates[i] = updates[i].Replace(@"""updateTime"":""", "");
+                updates[i] = updates[i].Replace(@"""real", "");
+            }
+            //MessageBox.Show(created.Count.ToString());
+            MessageBox.Show(updates.Count.ToString());
             countofpages = value / 30;
             if (countofpages > 100)
             {
