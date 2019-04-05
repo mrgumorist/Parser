@@ -77,7 +77,7 @@ namespace Worker
             {
                 names2.Add(item.Value);
             }
-            MessageBox.Show(names2.Count.ToString());
+            //MessageBox.Show(names2.Count.ToString());
             for (int i = 0; i < names2.Count; i++)
             {
                     names2[i] = names2[i].Replace(@"jss198"">, <!-- -->", "");
@@ -105,18 +105,23 @@ namespace Worker
             MessageBox.Show(price[0]);
             //jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215" tabindex="0" role="button" href="                        " target
             //MessageBox.Show(price[0]);
-            patern = @"jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215"" tabindex = ""0"" role = ""button"" href = ""(.*?)"" target";
+            patern = @"jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215"" tabindex=""0"" role=""button"" href=(.*?)"" target";
             rgx = new Regex(patern);
             foreach (Match item in rgx.Matches(htmlCode))
             {
                 links.Add(item.Value);
             }
-            for (int i = 0; i < names.Count; i++)
+            for (int i = 0; i < links.Count; i++)
             {
-                links[i] = links[i].Replace(@"jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215"" tabindex = ""0"" role = ""button"" href = """, "");
+                links[i] = links[i].Replace(@"jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215"" tabindex=""0"" role=""button"" href=""", "");
                 links[i] = links[i].Replace(@""" target", "");
+                links[i] = "https://www.lun.ua" + links[i];
             }
-            MessageBox.Show(links[0]);
+            //MessageBox.Show(links.Count.ToString());
+            //MessageBox.Show(names.Count.ToString());
+            //MessageBox.Show(price.Count.ToString());
+
+            //MessageBox.Show(links[0]);
             countofpages = value / 30;
             if (countofpages > 100)
             {
