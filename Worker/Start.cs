@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 
 namespace Worker
 {
@@ -32,24 +33,60 @@ namespace Worker
 
         private void button2_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
-            {
-                DialogResult result = fbd.ShowDialog();
+            //using (var fbd = new FolderBrowserDialog())
+            //{
+            //    DialogResult result = fbd.ShowDialog();
 
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                {
-                    path = fbd.SelectedPath;
-                }
-            }
-            filename = Microsoft.VisualBasic.Interaction.InputBox("Enter name of file (Without .excel) ", "Choosing name", "IAMSAMPLE");
+            //    if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+            //    {
+            //        path = fbd.SelectedPath;
+            //    }
+            //}
+           // filename = Microsoft.VisualBasic.Interaction.InputBox("Enter name of file (Without .excel) ", "Choosing name", "IAMSAMPLE");
             Thread InstanceCaller = new Thread(
             new ThreadStart(Method));
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+
+            openFileDialog1.InitialDirectory = "c:\\";
+            openFileDialog1.Filter = "Excel files(*.xlsx)|*.xlsx";
+            openFileDialog1.FilterIndex = 2;
+            openFileDialog1.RestoreDirectory = true;
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                filename = openFileDialog1.FileName;
+            }
             Link = textBox1.Text;
             InstanceCaller.Start();
         }
+        public static string filename1;
         public static void Method()
         {
-            MessageBox.Show("Start parse");
+            MessageBox.Show("Start parsing");
+            List<string> fromfile = new List<string>();
+            var fi = new FileInfo(filename);
+           
+           
+            using (var package = new ExcelPackage(fi))
+                    {
+                        var workbook = package.Workbook;
+                        var worksheet = workbook.Worksheets.Last();
+                        //TODO a
+                        int i = 2;
+                        var rowCnt = worksheet.Dimension.End.Row;
+                        
+                        while (i!=rowCnt+1)
+                        {
+                            fromfile.Add(worksheet.Cells[i, 1].Value.ToString());
+                            i++;
+                        }
+
+                //MessageBox.Show(fromfile.Count.ToString());
+                //MessageBox.Show(products.Count.ToString());
+                package.Dispose();
+            }
+            //!list.Exists(x => x.ID == 1)
+            #region a
             string htmlCode;
             List<House> products = new List<House>();
             List<string> str = new List<string>();
@@ -189,7 +226,7 @@ namespace Worker
                         webClient.Encoding = Encoding.UTF8;
                         htmlCode = webClient.DownloadString(link);
                     }
-                    #region a
+                  
                     patern = @"jss182""><a href=""(.*?)"" target";
                     rgx = new Regex(patern);
 
@@ -275,14 +312,111 @@ namespace Worker
                     }
 
                     products.AddRange(products1);
-                    #endregion
+                    
                 }
             }
+            #endregion
+            List<string> productsNew = new List<string>();
+            foreach (var item in products)
+            {
+                productsNew.Add(item.Adress);
+            }
+            List<string> isnue = new List<string>();
+            for(int i=0; i<products.Count; i++)
+            {
+                isnue.Add("Old");
+            }
+            for(int i=0; i< productsNew.Count; i++)
+            {
+                if(!fromfile.Contains(productsNew[i]))
+                {
+                    isnue[i] = "New";
+                }
+            }
+            using (var package = new ExcelPackage(fi))
+            {
+                Random random = new Random();
+                int rand = random.Next(10000000);
+                var workbook = package.Workbook;
+                package.Workbook.Worksheets.Add("Worksheetlast" + rand);
+                var excelWorksheet = package.Workbook.Worksheets["Worksheetlast" + rand];
+                //TODO a
+                //int i = 2;
+                //var rowCnt = excelWorksheet.Dimension.End.Row;
 
-            //TODO a
+                //while (i != rowCnt + 1)
+                //{
+                //    fromfile.Add(excelWorksheet.Cells[i, 1].Value.ToString());
+                //    i++;
+                //}
+                excelWorksheet.Cells[1, 1].Value = "Adress";
+                excelWorksheet.Cells[1, 2].Value = "Price";
+                excelWorksheet.Cells[1, 3].Value = "CountOfRooms";
+                excelWorksheet.Cells[1, 4].Value = "Metrazh";
+                excelWorksheet.Cells[1, 5].Value = "Link";
+                excelWorksheet.Cells[1, 6].Value = "Created";
+                excelWorksheet.Cells[1, 7].Value = "Updated";
+                excelWorksheet.Cells[1, 8].Value = "ISNEW";
+                for (int i = 0; i < products.Count; i++)
+                {
+                    excelWorksheet.Cells[i + 2, 1].Value = products[i].Adress;
+                    excelWorksheet.Cells[i + 2, 2].Value = products[i].Price;
+                    excelWorksheet.Cells[i + 2, 3].Value = products[i].CountOfRooms;
+                    excelWorksheet.Cells[i + 2, 4].Value = products[i].Metrazh;
+                    excelWorksheet.Cells[i + 2, 5].Value = products[i].Link;
+                    excelWorksheet.Cells[i + 2, 6].Value = products[i].Created;
+                    excelWorksheet.Cells[i + 2, 7].Value = products[i].Updated;
+                    ExcelStyles excelStyles;
+                     if(isnue[i]=="New")
+                     {
+                        Color colFromHex = System.Drawing.ColorTranslator.FromHtml("#00ff00");
+                        excelWorksheet.Cells[i+2, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 1].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 2].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 2].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 3].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 3].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 4].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 4].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 5].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 5].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 6].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 6].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 7].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 7].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                    }
+                     else
+                     {
+                        Color colFromHex = System.Drawing.ColorTranslator.FromHtml("#ffff00");
+                        excelWorksheet.Cells[i + 2, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 1].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 2].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 2].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 3].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 3].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 4].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 4].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 5].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 5].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 6].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 6].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        excelWorksheet.Cells[i + 2, 7].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        excelWorksheet.Cells[i + 2, 7].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                    }
+                    excelWorksheet.Cells[i + 2, 8].Value = isnue[i];
+                    // MessageBox.Show(products[i].Adress);
+                }
+                package.Save();
+                package.Dispose();
+                //MessageBox.Show(fromfile.Count.ToString());
+                //MessageBox.Show(products.Count.ToString());
+            }
+            MessageBox.Show("End parsing");
 
-            //MessageBox.Show(products.Count.ToString());
+
+
         }
+
         public static void InstanceMethod()
         {
             MessageBox.Show("Start parse");
