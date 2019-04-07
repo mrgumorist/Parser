@@ -41,7 +41,7 @@
             this.label1.ForeColor = System.Drawing.SystemColors.WindowFrame;
             this.label1.Location = new System.Drawing.Point(12, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(105, 42);
+            this.label1.Size = new System.Drawing.Size(101, 40);
             this.label1.TabIndex = 0;
             this.label1.Text = "URL:";
             this.label1.Click += new System.EventHandler(this.label1_Click);
@@ -72,6 +72,7 @@
             this.button2.TabIndex = 3;
             this.button2.Text = "Update";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // Start
             // 
