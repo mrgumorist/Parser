@@ -64,27 +64,60 @@ namespace Worker
         {
             MessageBox.Show("Start parsing");
             List<string> fromfile = new List<string>();
+            List<House> fromHouse = new List<House>();
             var fi = new FileInfo(filename);
-           
-           
-            using (var package = new ExcelPackage(fi))
-                    {
-                        var workbook = package.Workbook;
-                        var worksheet = workbook.Worksheets.Last();
-                        //TODO a
-                        int i = 2;
-                        var rowCnt = worksheet.Dimension.End.Row;
-                        
-                        while (i!=rowCnt+1)
-                        {
-                            fromfile.Add(worksheet.Cells[i, 1].Value.ToString());
-                            i++;
-                        }
 
-                //MessageBox.Show(fromfile.Count.ToString());
-                //MessageBox.Show(products.Count.ToString());
-                package.Dispose();
+            using (var package = new ExcelPackage(fi))
+            {
+                var workbook = package.Workbook;
+                var worksheet = workbook.Worksheets.Last();
+                //TODO a
+                int i = 2;
+                var rowCnt = worksheet.Dimension.End.Row;
+
+                while (i != rowCnt + 1)
+                {
+                    var house = new House();
+                    house.Adress = worksheet.Cells[i, 1].Value.ToString();
+                    house.Price = worksheet.Cells[i, 2].Value.ToString();
+                    house.CountOfRooms = worksheet.Cells[i, 3].Value.ToString();
+                    house.Metrazh = worksheet.Cells[i, 4].Value.ToString();
+                    house.Link = worksheet.Cells[i, 5].Value.ToString();
+                    house.Created = worksheet.Cells[i, 6].Value.ToString();
+                    house.Updated = worksheet.Cells[i, 7].Value.ToString();
+                    fromHouse.Add(house);
+                    fromfile.Add(worksheet.Cells[i, 1].Value.ToString());
+                    i++;
+                }
             }
+            //    using (var package = new ExcelPackage(fi))
+            //        {
+            //            var workbook = package.Workbook;
+            //            var worksheet = workbook.Worksheets.Last();
+            //            //TODO a
+            //            int i = 2;
+            //            var rowCnt = worksheet.Dimension.End.Row;
+            //    MessageBox.Show(rowCnt.ToString());
+            //            while (i!=rowCnt+1)
+            //            {
+            //        //var house = new House();
+            //        //house.Adress = worksheet.Cells[i, 1].Value.ToString();
+            //        //house.Price = worksheet.Cells[i, 2].Value.ToString();
+            //        //house.CountOfRooms = worksheet.Cells[i, 3].Value.ToString();
+            //        //house.Metrazh = worksheet.Cells[i, 4].Value.ToString();
+            //        //house.Link = worksheet.Cells[i, 5].Value.ToString();
+            //        //house.Created = worksheet.Cells[i, 6].Value.ToString();
+            //        //house.Updated = worksheet.Cells[i, 7].Value.ToString();
+            //        //fromHouse.Add(house);
+            //        fromfile.Add(worksheet.Cells[i, 1].Value.ToString());
+            //                i++;
+            //        package.Dispose();
+            //            }
+
+            //    //MessageBox.Show(fromfile.Count.ToString());
+            //    //MessageBox.Show(products.Count.ToString());
+            //    package.Dispose();
+            //}
             //!list.Exists(x => x.ID == 1)
             #region a
             string htmlCode;
@@ -136,7 +169,8 @@ namespace Worker
                 string link = match.Value;
                 link = link.Replace(@"jss182""><a href=""", "");
                 link = link.Replace(@""" class=""jss183"" target", "");
-                products[i].Link = name;
+                link = "https://www.lun.ua" + link;
+                products[i].Link = link;
                 //Console.WriteLine(link);
                 patern = @"<li class=""jss210"">(.*?)</li>";
                 rgx = new Regex(patern);
@@ -255,7 +289,8 @@ namespace Worker
                         link = match.Value;
                         link = link.Replace(@"jss182""><a href=""", "");
                         link = link.Replace(@""" class=""jss183"" target", "");
-                        products1[i].Link = name;
+                        link = "https://www.lun.ua" + link;
+                        products1[i].Link = link;
                         //Console.WriteLine(link);
                         patern = @"<li class=""jss210"">(.*?)</li>";
                         rgx = new Regex(patern);
@@ -331,15 +366,24 @@ namespace Worker
                 if(!fromfile.Contains(productsNew[i]))
                 {
                     isnue[i] = "New";
+                   
+                }
+            }
+            for(int i=0; i<fromfile.Count; i++)
+            {
+                if(!productsNew.Contains(fromfile[i]))
+                {
+                    products.Add(fromHouse[i]);
+                    isnue.Add("Deleted");
                 }
             }
             using (var package = new ExcelPackage(fi))
             {
-                Random random = new Random();
-                int rand = random.Next(10000000);
+                
+                string v = DateTime.Now.ToShortDateString()+"min"+ DateTime.Now.Minute.ToString();
                 var workbook = package.Workbook;
-                package.Workbook.Worksheets.Add("Worksheetlast" + rand);
-                var excelWorksheet = package.Workbook.Worksheets["Worksheetlast" + rand];
+                package.Workbook.Worksheets.Add(v);
+                var excelWorksheet = package.Workbook.Worksheets[v];
                 //TODO a
                 //int i = 2;
                 //var rowCnt = excelWorksheet.Dimension.End.Row;
@@ -385,9 +429,9 @@ namespace Worker
                         excelWorksheet.Cells[i + 2, 7].Style.Fill.PatternType = ExcelFillStyle.Solid;
                         excelWorksheet.Cells[i + 2, 7].Style.Fill.BackgroundColor.SetColor(colFromHex);
                     }
-                     else
+                     else if(isnue[i]== "Deleted")
                      {
-                        Color colFromHex = System.Drawing.ColorTranslator.FromHtml("#ffff00");
+                        Color colFromHex = System.Drawing.ColorTranslator.FromHtml("#ff0000");
                         excelWorksheet.Cells[i + 2, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
                         excelWorksheet.Cells[i + 2, 1].Style.Fill.BackgroundColor.SetColor(colFromHex);
                         excelWorksheet.Cells[i + 2, 2].Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -469,7 +513,8 @@ namespace Worker
                 string link = match.Value;
                 link = link.Replace(@"jss182""><a href=""", "");
                 link = link.Replace(@""" class=""jss183"" target", "");
-                products[i].Link = name;
+                link = "https://www.lun.ua" + link;
+                products[i].Link = link;
                 //Console.WriteLine(link);
                 patern = @"<li class=""jss210"">(.*?)</li>";
                 rgx = new Regex(patern);
@@ -588,7 +633,8 @@ namespace Worker
                         link = match.Value;
                         link = link.Replace(@"jss182""><a href=""", "");
                         link = link.Replace(@""" class=""jss183"" target", "");
-                        products1[i].Link = name;
+                        link = "https://www.lun.ua" + link;
+                        products1[i].Link = link;
                         //Console.WriteLine(link);
                         patern = @"<li class=""jss210"">(.*?)</li>";
                         rgx = new Regex(patern);
@@ -651,8 +697,9 @@ namespace Worker
             //MessageBox.Show(products.Count.ToString());
             using (ExcelPackage excel = new ExcelPackage())
             {
-                excel.Workbook.Worksheets.Add("Worksheet1");
-                var excelWorksheet = excel.Workbook.Worksheets["Worksheet1"];
+                string v = DateTime.Now.ToShortDateString() + "min" + DateTime.Now.Minute.ToString();
+                excel.Workbook.Worksheets.Add(v);
+                var excelWorksheet = excel.Workbook.Worksheets[v];
                 excelWorksheet.Cells[1, 1].Value = "Adress";
                 excelWorksheet.Cells[1, 2].Value = "Price";
                 excelWorksheet.Cells[1, 3].Value = "CountOfRooms";
