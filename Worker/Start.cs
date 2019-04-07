@@ -16,6 +16,7 @@ namespace Worker
 {
     public partial class Start : Form
     {
+        string htmlCode;
         public static string path, filename, Link;
        
         public Start()
@@ -29,29 +30,115 @@ namespace Worker
         }
         public static void InstanceMethod()
         {
+            MessageBox.Show("Start parse");
             string htmlCode;
-            double countofpages;
-            List<House> houses = new List<House>();
-            List<string> names = new List<string>();
-            List<string> names2 = new List<string>();
-            List<string> price = new List<string>();
-            List<string> links = new List<string>();
-            List<string> created = new List<string>();
-            List<string> parameters = new List<string>();
-            List<string> updates = new List<string>();
-            MessageBox.Show("We are start our parsing");
-            using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
+            List<House> products = new List<House>();
+            List<string> str = new List<string>();
+            using (WebClient webClient = new WebClient())
             {
-                client.Encoding = Encoding.UTF8;
-                htmlCode = client.DownloadString(Link);
-                File.WriteAllText("first.txt", htmlCode);
+                // nastaveni ze webClient ma pouzit Windows Authentication
+                // webClient.UseDefaultCredentials = true;
+                webClient.Encoding = Encoding.UTF8;
+                htmlCode = webClient.DownloadString(Link);
             }
-            //< span class="jss122">867 объявлений</span>
             string patern = @"jss122"">(.*?)</span>";
             Match match = Regex.Match(htmlCode, patern);
             string strcount = match.Value;
             strcount = strcount.Replace(@"jss122"">", "");
-            // MessageBox.Show(strcount);
+            strcount = strcount.Replace(@" объявлений</span>", "");
+            MessageBox.Show(strcount);
+            patern = @"jss182""><a href=""(.*?)</div></div><a class=""jss91 jss65";
+            Regex rgx = new Regex(patern);
+
+            foreach (Match item in rgx.Matches(htmlCode))
+            {
+                str.Add(item.Value);
+            }
+            for (int i = 0; i < str.Count; i++)
+            {
+                House product = new House();
+                products.Add(product);
+            }
+            for (int i = 0; i < str.Count; i++)
+            {
+                patern = @"jss206"">(.*?)</div>";
+                match = Regex.Match(str[i], patern);
+                string price = match.Value;
+                price = price.Replace(@"jss206"">", "");
+                price = price.Replace(@"</div>", "");
+                products[i].Price = price;
+                //Console.WriteLine(price);
+                patern = @"class=""jss195"" title=""(.*?)""><span";
+                match = Regex.Match(str[i], patern);
+                string name = match.Value;
+                name = name.Replace(@"class=""jss195"" title=""", "");
+                name = name.Replace(@"""><span", "");
+                products[i].Adress = name;
+                //Console.WriteLine(name);
+                patern = @"jss182""><a href=""(.*?)"" target";
+                match = Regex.Match(str[i], patern);
+                string link = match.Value;
+                link = link.Replace(@"jss182""><a href=""", "");
+                link = link.Replace(@""" class=""jss183"" target", "");
+                products[i].Link = name;
+                //Console.WriteLine(link);
+                patern = @"<li class=""jss210"">(.*?)</li>";
+                rgx = new Regex(patern);
+                int index = 0;
+                foreach (Match item in rgx.Matches(str[i]))
+                {
+                    string parametter = item.Value;
+                    parametter = parametter.Replace(@"<li class=""jss210"">", "");
+                    parametter = parametter.Replace(@"</li>", "");
+                    parametter = parametter.Replace(@"<!-- -->", "");
+
+                    if (index == 0)
+                    {
+                        products[i].CountOfRooms = parametter;
+                        index++;
+                    }
+                    else
+                    {
+                        products[i].Metrazh = parametter;
+
+                    }
+
+
+
+                }
+                //Console.WriteLine(products[i].Metrazh+" "+products[i].CountOfRooms);
+
+            }
+            patern = @"""updateTime"":""(.*?)"",""real";
+            rgx = new Regex(patern);
+            List<string> updates = new List<string>();
+            foreach (Match item in rgx.Matches(htmlCode))
+            {
+                updates.Add(item.Value);
+            }
+            for (int i = 0; i < updates.Count; i++)
+            {
+                updates[i] = updates[i].Replace(@"""updateTime"":""", "");
+                updates[i] = updates[i].Replace(@",""real", "");
+                products[i].Updated = updates[i];
+                //Console.WriteLine(updates[i]);
+            }
+            patern = @",""addTime"":""(.*?)"",""";
+            rgx = new Regex(patern);
+            List<string> addd = new List<string>();
+            foreach (Match item in rgx.Matches(htmlCode))
+            {
+                addd.Add(item.Value);
+            }
+            for (int i = 0; i < addd.Count; i++)
+            {
+                addd[i] = addd[i].Replace(@",""addTime"":""", "");
+                addd[i] = addd[i].Replace(@""",""", "");
+                products[i].Updated = addd[i];
+                Console.WriteLine(addd[i]);
+            }
+            int count = 0;
+
             int value = 0;
             foreach (char c in strcount)
             {
@@ -60,163 +147,131 @@ namespace Worker
                     value = value * 10 + (c - '0');
                 }
             }
-            //MessageBox.Show(value.ToString()) ;
-            patern = @"jss197"">(.*?)</span>";
-            Regex rgx = new Regex(patern);
-            
-            foreach (Match item in rgx.Matches(htmlCode))
+            value = value / 30;
+            if (value / 30 > 1)
             {
-                names.Add(item.Value);
-            }
-            for (int i = 0; i < names.Count; i++)
-            {
-                names[i] = names[i].Replace(@"jss197"">", "");
-                names[i] = names[i].Replace(@"</span>", "");
-            }
-            patern = @"jss198"">, <!-- -->(.*?)</span>";
-            rgx = new Regex(patern);
-
-            foreach (Match item in rgx.Matches(htmlCode))
-            {
-                names2.Add(item.Value);
-            }
-            //MessageBox.Show(names2.Count.ToString());
-            for (int i = 0; i < names2.Count; i++)
-            {
-                    names2[i] = names2[i].Replace(@"jss198"">, <!-- -->", "");
-                    names2[i] = names2[i].Replace(@"</span>", "");
-            }
-            for(int i=0; i<names.Count; i++)
-            {
-                names[i] = names[i] + names2[i];
-                //names[i] = names[i].Replace(@"<!-- -->", "");
-            }
-            //MessageBox.Show(names[0]);
-            names2.Clear();
-            patern = @"jss206"">(.*?)</div>";
-            rgx = new Regex(patern);
-
-            foreach (Match item in rgx.Matches(htmlCode))
-            {
-                price.Add(item.Value);
-            }
-            for (int i = 0; i < names.Count; i++)
-            {
-                price[i] = price[i].Replace(@"jss206"">", "");
-                price[i] = price[i].Replace(@"</div>", "");
-            }
-            //MessageBox.Show(price[0]);
-            //jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215" tabindex="0" role="button" href="                        " target
-            //MessageBox.Show(price[0]);
-            patern = @"jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215"" tabindex=""0"" role=""button"" href=(.*?)"" target";
-            rgx = new Regex(patern);
-            foreach (Match item in rgx.Matches(htmlCode))
-            {
-                links.Add(item.Value);
-            }
-            for (int i = 0; i < links.Count; i++)
-            {
-                links[i] = links[i].Replace(@"jss91 jss65 jss67 jss68 jss70 jss71 jss88 jss215"" tabindex=""0"" role=""button"" href=""", "");
-                links[i] = links[i].Replace(@""" target", "");
-                links[i] = "https://www.lun.ua" + links[i];
-            }
-            patern = @"<li class=""jss210"">(.*?)</li>";
-            rgx = new Regex(patern);
-            int index = 0;
-            foreach (Match item in rgx.Matches(htmlCode))
-            {
-                if (index == 0)
+                if(value > 100)
                 {
-                    parameters.Add(item.Value);
-                    index+=1;
+                     count =100;
                 }
                 else
                 {
-                    if(parameters[index-1].Contains("м²")==false && item.Value.Contains("м²") == true)
-                    {
-                        parameters.Add(item.Value);
-                        index++;
-                    }
-                    else if(item.Value.Contains("м²") == false && parameters[index-1].Contains("м²") == true)
-                    {
-                        parameters.Add(item.Value);
-                        index++;
-                    }
-                    
-
-
+                    count = value ;
                 }
-                
-                   
-                
-            }
-            //int index = 0;
-            for(int i=0; i<parameters.Count; i++)
-            {
-                        parameters[i] = parameters[i].Replace(@"<li class=""jss210"">", "");
-                        parameters[i] = parameters[i].Replace(@"</li>", "");
-                           
-            }
-            for(int i=0; i<parameters.Count; i++)
-            {
-                if(parameters[i].Contains(@"<!-- -->")==true)
-                parameters[i] = parameters[i].Replace(@"<!-- -->", "");
-
-            }
-            //foreach (var item in parameters)
-            //{
-            //    MessageBox.Show(item);
-            //}
-            //MessageBox.Show(parameters.Count.ToString());
-            //MessageBox.Show(links.Count.ToString());
-            //MessageBox.Show(names.Count.ToString());
-            //MessageBox.Show(price.Count.ToString());
-            //MessageBox.Show(links[0]);
-            patern = @"class=""jss207"">(.*?)</div>";
-            rgx = new Regex(patern);
-
-            foreach (Match item in rgx.Matches(htmlCode))
-            {
-                created.Add(item.Value);
-            }
-            for (int i = 0; i < created.Count; i++)
-            {
-                created[i] = created[i].Replace(@"class=""jss207"">", "");
-                created[i] = created[i].Replace(@"</div>", "");
-            }
-            patern = @"""updateTime"":""(.*?)"",""real";
-            rgx = new Regex(patern);
-            foreach (Match item in rgx.Matches(htmlCode))
-            {
-                updates.Add(item.Value);
-            }
-            for (int i = 0; i < updates.Count; i++)
-            {
-                updates[i] = updates[i].Replace(@"""updateTime"":""", "");
-                updates[i] = updates[i].Replace(@"""real", "");
-            }
-            //MessageBox.Show(created.Count.ToString());
-            MessageBox.Show(updates.Count.ToString());
-            countofpages = value / 30;
-            if (countofpages > 100)
-            {
-                for (int i = 2; i <= 100; i++)
+                for(int i=2; i<count-1;i++)
                 {
+                    List<House> products1 = new List<House>();
+                    List<string> str1 = new List<string>();
+                    string link = Link + "?page="+i.ToString();
+                    using (WebClient webClient = new WebClient())
+                    {
+                        // nastaveni ze webClient ma pouzit Windows Authentication
+                        // webClient.UseDefaultCredentials = true;
+                        webClient.Encoding = Encoding.UTF8;
+                        htmlCode = webClient.DownloadString(link);
+                    }
+                    #region a
+                     patern = @"jss182""><a href=""(.*?)"" target";
+                    rgx = new Regex(patern);
 
+                    foreach (Match item in rgx.Matches(htmlCode))
+                    {
+                        str1.Add(item.Value);
+                    }
+                    for (int k = 0; k < str1.Count; k++)
+                    {
+                        House product = new House();
+                        products1.Add(product);
+                    }
+                    for (int k = 0; k < str1.Count; k++)
+                    {
+                        //MessageBox.Show(k.ToString());
+                        patern = @"jss206"">(.*?)</div>";
+                        match = Regex.Match(str1[k], patern);
+                        string price = match.Value;
+                        price = price.Replace(@"jss206"">", "");
+                        price = price.Replace(@"</div>", "");
+                        products1[k].Price = price;
+                        //Console.WriteLine(price);
+                        patern = @"class=""jss195"" title=""(.*?)""><span";
+                        match = Regex.Match(str1[k], patern);
+                        string name = match.Value;
+                        name = name.Replace(@"class=""jss195"" title=""", "");
+                        name = name.Replace(@"""><span", "");
+                        products1[k].Adress = name;
+                        //Console.WriteLine(name);
+                        patern = @"jss182""><a href=""(.*?)"" target";
+                        match = Regex.Match(str1[k], patern);
+                        link = match.Value;
+                        link = link.Replace(@"jss182""><a href=""", "");
+                        link = link.Replace(@""" class=""jss183"" target", "");
+                        products1[k].Link = link;
+                        //Console.WriteLine(link);
+                        patern = @"<li class=""jss210"">(.*?)</li>";
+                        rgx = new Regex(patern);
+                        int index = 0;
+                        foreach (Match item in rgx.Matches(str1[k]))
+                        {
+                            string parametter = item.Value;
+                            parametter = parametter.Replace(@"<li class=""jss210"">", "");
+                            parametter = parametter.Replace(@"</li>", "");
+                            parametter = parametter.Replace(@"<!-- -->", "");
+
+                            if (index == 0)
+                            {
+                                products[k].CountOfRooms = parametter;
+                                index++;
+                            }
+                            else
+                            {
+                                products[k].Metrazh = parametter;
+
+                            }
+
+
+
+                        }
+                        //Console.WriteLine(products[i].Metrazh+" "+products[i].CountOfRooms);
+
+                    }
+                    patern = @"""updateTime"":""(.*?)"",""real";
+                    rgx = new Regex(patern);
+                    List<string> updates1 = new List<string>();
+                    foreach (Match item in rgx.Matches(htmlCode))
+                    {
+                        updates1.Add(item.Value);
+                    }
+                    for (int k = 0; k < updates.Count; k++)
+                    {
+                        updates1[k] = updates1[k].Replace(@"""updateTime"":""", "");
+                        updates1[k] = updates1[k].Replace(@",""real", "");
+                        products1[k].Updated = updates1[k];
+                        //Console.WriteLine(updates[i]);
+                    }
+                    patern = @",""addTime"":""(.*?)"",""";
+                    rgx = new Regex(patern);
+                    List<string> addd1 = new List<string>();
+                    foreach (Match item in rgx.Matches(htmlCode))
+                    {
+                        addd1.Add(item.Value);
+                    }
+                    for (int k = 0; k < addd.Count; k++)
+                    {
+                        addd1[k] = addd1[k].Replace(@",""addTime"":""", "");
+                        addd1[k] = addd1[k].Replace(@""",""", "");
+                        products1[k].Updated = addd1[k];
+                        //Console.WriteLine(addd1[k]);
+                    }
+                    products.AddRange(products1);
+                    #endregion
                 }
             }
-            else
-            {
-                countofpages = countofpages + 1;
-                for (int i = 2; i <= countofpages; i++)
-                {
-
-                }
-            }
-            //MessageBox.Show(countofpages.ToString()) ;
-            MessageBox.Show("We are end our parsing");
-            
+            MessageBox.Show(products.Count.ToString());
+            MessageBox.Show("End parse");
         }
+
+
+    
         private void button1_Click(object sender, EventArgs e)
         {
             using (var fbd = new FolderBrowserDialog())
@@ -225,7 +280,6 @@ namespace Worker
 
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
-                    //MessageBox.Show("Directory:" + fbd.SelectedPath);
                     path = fbd.SelectedPath;
                 }
             }
@@ -233,8 +287,6 @@ namespace Worker
             Thread InstanceCaller = new Thread(
             new ThreadStart(InstanceMethod));
             Link = textBox1.Text;
-
-            // Start the thread.
             InstanceCaller.Start();
         }
     }
