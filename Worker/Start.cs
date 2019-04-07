@@ -369,6 +369,38 @@ namespace Worker
                    
                 }
             }
+            List<string> IsPriceEdited = new List<string>();
+            List<string> Edited = new List<string>();
+            for(int i=0; i<products.Count; i++)
+            {
+                Edited.Add("NotEdited");
+            }
+            //for(int i=0; i< products.Count; i++)
+            //{
+            //    for(int t= 0; t<fromfile.Count;t++)
+            //    {
+            //        if (productsNew.Contains(fromHouse[i].Adress))
+            //        {
+            //            if(products[i].Price!= fromHouse[fromHouse.IndexOf(fromHouse[t])].Price)
+            //            {
+            //                Edited[t] = "Edited";
+            //            }
+                       
+            //        }
+                    
+            //    }
+            //}
+            for(int i=0; i<products.Count; i++)
+            {
+                if(fromfile.Contains(products[i].Adress))
+                {
+                    
+                    if(products[i].Price != fromHouse[fromfile.IndexOf(products[i].Adress)].Price)
+                    {
+                        Edited[i] = "Edited";
+                    }
+                }
+            }
             for(int i=0; i<fromfile.Count; i++)
             {
                 if(!productsNew.Contains(fromfile[i]))
@@ -401,6 +433,7 @@ namespace Worker
                 excelWorksheet.Cells[1, 6].Value = "Created";
                 excelWorksheet.Cells[1, 7].Value = "Updated";
                 excelWorksheet.Cells[1, 8].Value = "ISNEW";
+                excelWorksheet.Cells[1, 9].Value = "ISEDITED";
                 for (int i = 0; i < products.Count; i++)
                 {
                     excelWorksheet.Cells[i + 2, 1].Value = products[i].Adress;
@@ -448,6 +481,20 @@ namespace Worker
                         excelWorksheet.Cells[i + 2, 7].Style.Fill.BackgroundColor.SetColor(colFromHex);
                     }
                     excelWorksheet.Cells[i + 2, 8].Value = isnue[i];
+                    try
+                    {
+                        excelWorksheet.Cells[i + 2, 9].Value = Edited[i];
+                        if (excelWorksheet.Cells[i+2, 9].Value.ToString() == "Edited")
+                        {
+                            Color colFromHex = System.Drawing.ColorTranslator.FromHtml("#ffff00");
+                            excelWorksheet.Cells[i + 2, 9].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            excelWorksheet.Cells[i + 2, 9].Style.Fill.BackgroundColor.SetColor(colFromHex);
+                        }
+                    }
+                    catch
+                    {
+
+                    }
                     // MessageBox.Show(products[i].Adress);
                 }
                 package.Save();
