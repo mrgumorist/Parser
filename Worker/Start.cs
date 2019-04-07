@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using OfficeOpenXml;
 
 namespace Worker
 {
@@ -46,7 +47,7 @@ namespace Worker
             string strcount = match.Value;
             strcount = strcount.Replace(@"jss122"">", "");
             strcount = strcount.Replace(@" объявлений</span>", "");
-            MessageBox.Show(strcount);
+            //MessageBox.Show(strcount);
             patern = @"jss182""><a href=""(.*?)</div></div><a class=""jss91 jss65";
             Regex rgx = new Regex(patern);
 
@@ -68,11 +69,11 @@ namespace Worker
                 price = price.Replace(@"</div>", "");
                 products[i].Price = price;
                 //Console.WriteLine(price);
-                patern = @"class=""jss195"" title=""(.*?)""><span";
+                patern = @"""jss195"" title=""(.*?)><div class";
                 match = Regex.Match(str[i], patern);
                 string name = match.Value;
-                name = name.Replace(@"class=""jss195"" title=""", "");
-                name = name.Replace(@"""><span", "");
+                name = name.Replace(@"""jss195"" title=""", "");
+                name = name.Replace(@"><div class", "");
                 products[i].Adress = name;
                 //Console.WriteLine(name);
                 patern = @"jss182""><a href=""(.*?)"" target";
@@ -107,7 +108,7 @@ namespace Worker
 
                 }
                 //Console.WriteLine(products[i].Metrazh+" "+products[i].CountOfRooms);
-
+                //MessageBox.Show(products[i].Adress);
             }
             patern = @"""updateTime"":""(.*?)"",""real";
             rgx = new Regex(patern);
@@ -134,8 +135,8 @@ namespace Worker
             {
                 addd[i] = addd[i].Replace(@",""addTime"":""", "");
                 addd[i] = addd[i].Replace(@""",""", "");
-                products[i].Updated = addd[i];
-                Console.WriteLine(addd[i]);
+                products[i].Created = addd[i];
+                //Console.WriteLine(addd[i]);
             }
             int count = 0;
 
@@ -193,11 +194,11 @@ namespace Worker
                         price = price.Replace(@"</div>", "");
                         products1[k].Price = price;
                         //Console.WriteLine(price);
-                        patern = @"class=""jss195"" title=""(.*?)""><span";
+                        patern = @"""jss195"" title=""(.*?)><div class";
                         match = Regex.Match(str1[k], patern);
                         string name = match.Value;
-                        name = name.Replace(@"class=""jss195"" title=""", "");
-                        name = name.Replace(@"""><span", "");
+                        name = name.Replace(@"""jss195"" title=""", "");
+                        name = name.Replace(@"><div class", "");
                         products1[k].Adress = name;
                         //Console.WriteLine(name);
                         patern = @"jss182""><a href=""(.*?)"" target";
@@ -241,7 +242,7 @@ namespace Worker
                     {
                         updates1.Add(item.Value);
                     }
-                    for (int k = 0; k < updates.Count; k++)
+                    for (int k = 0; k < updates1.Count; k++)
                     {
                         updates1[k] = updates1[k].Replace(@"""updateTime"":""", "");
                         updates1[k] = updates1[k].Replace(@",""real", "");
@@ -255,7 +256,7 @@ namespace Worker
                     {
                         addd1.Add(item.Value);
                     }
-                    for (int k = 0; k < addd.Count; k++)
+                    for (int k = 0; k < addd1.Count; k++)
                     {
                         addd1[k] = addd1[k].Replace(@",""addTime"":""", "");
                         addd1[k] = addd1[k].Replace(@""",""", "");
@@ -266,8 +267,38 @@ namespace Worker
                     #endregion
                 }
             }
-            MessageBox.Show(products.Count.ToString());
+            //MessageBox.Show(products.Count.ToString());
+            using (ExcelPackage excel = new ExcelPackage())
+            {
+                excel.Workbook.Worksheets.Add("Worksheet1");
+                var excelWorksheet = excel.Workbook.Worksheets["Worksheet1"];
+                excelWorksheet.Cells[1, 1].Value = "Adress";
+                excelWorksheet.Cells[1, 2].Value = "Price";
+                excelWorksheet.Cells[1, 3].Value = "CountOfRooms";
+                excelWorksheet.Cells[1, 4].Value = "Metrazh";
+                excelWorksheet.Cells[1, 5].Value = "Link";
+                excelWorksheet.Cells[1, 6].Value = "Created";
+                excelWorksheet.Cells[1, 7].Value = "Updated";
+                for (int i = 0; i < products.Count; i++)
+                {
+                    excelWorksheet.Cells[i+2, 1].Value = products[i].Adress;
+                    excelWorksheet.Cells[i+2 ,2].Value = products[i].Price;
+                    excelWorksheet.Cells[i + 2, 3].Value = products[i].CountOfRooms;
+                    excelWorksheet.Cells[i + 2, 4].Value = products[i].Metrazh;
+                    excelWorksheet.Cells[i + 2, 5].Value = products[i].Link;
+                    excelWorksheet.Cells[i + 2, 6].Value = products[i].Created;
+                    excelWorksheet.Cells[i + 2, 7].Value = products[i].Updated;
+                   // MessageBox.Show(products[i].Adress);
+                }
+               
+                FileInfo excelFile = new FileInfo(path+@"\"+filename+".xlsx");
+                excel.SaveAs(excelFile);
+                
+            }
             MessageBox.Show("End parse");
+            //string lastpath = path + @"\" + filename + ".xlsx";
+            //Console.WriteLine(lastpath);
+           
         }
 
 
