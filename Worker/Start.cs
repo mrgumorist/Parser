@@ -159,11 +159,11 @@ namespace Worker
                 {
                     count = value ;
                 }
-                for(int i=2; i<count-1;i++)
+                for(int k=2; k<count-1;k++)
                 {
                     List<House> products1 = new List<House>();
                     List<string> str1 = new List<string>();
-                    string link = Link + "?page="+i.ToString();
+                    string link = Link + "?page="+k.ToString();
                     using (WebClient webClient = new WebClient())
                     {
                         // nastaveni ze webClient ma pouzit Windows Authentication
@@ -172,46 +172,40 @@ namespace Worker
                         htmlCode = webClient.DownloadString(link);
                     }
                     #region a
-                     patern = @"jss182""><a href=""(.*?)"" target";
+                    patern = @"jss182""><a href=""(.*?)"" target";
                     rgx = new Regex(patern);
 
                     foreach (Match item in rgx.Matches(htmlCode))
                     {
                         str1.Add(item.Value);
                     }
-                    for (int k = 0; k < str1.Count; k++)
+                    for (int i = 0; i < str1.Count; i++)
                     {
-                        House product = new House();
-                        products1.Add(product);
-                    }
-                    for (int k = 0; k < str1.Count; k++)
-                    {
-                        //MessageBox.Show(k.ToString());
                         patern = @"jss206"">(.*?)</div>";
-                        match = Regex.Match(str1[k], patern);
+                        match = Regex.Match(str1[i], patern);
                         string price = match.Value;
                         price = price.Replace(@"jss206"">", "");
                         price = price.Replace(@"</div>", "");
-                        products1[k].Price = price;
+                        products1[i].Price = price;
                         //Console.WriteLine(price);
                         patern = @"""jss195"" title=""(.*?)><div class";
-                        match = Regex.Match(str1[k], patern);
+                        match = Regex.Match(str1[i], patern);
                         string name = match.Value;
                         name = name.Replace(@"""jss195"" title=""", "");
                         name = name.Replace(@"><div class", "");
-                        products1[k].Adress = name;
+                        products1[i].Adress = name;
                         //Console.WriteLine(name);
                         patern = @"jss182""><a href=""(.*?)"" target";
-                        match = Regex.Match(str1[k], patern);
+                        match = Regex.Match(str1[i], patern);
                         link = match.Value;
                         link = link.Replace(@"jss182""><a href=""", "");
                         link = link.Replace(@""" class=""jss183"" target", "");
-                        products1[k].Link = link;
+                        products1[i].Link = name;
                         //Console.WriteLine(link);
                         patern = @"<li class=""jss210"">(.*?)</li>";
                         rgx = new Regex(patern);
                         int index = 0;
-                        foreach (Match item in rgx.Matches(str1[k]))
+                        foreach (Match item in rgx.Matches(str1[i]))
                         {
                             string parametter = item.Value;
                             parametter = parametter.Replace(@"<li class=""jss210"">", "");
@@ -220,50 +214,49 @@ namespace Worker
 
                             if (index == 0)
                             {
-                                products[k].CountOfRooms = parametter;
+                                products1[i].CountOfRooms = parametter;
                                 index++;
                             }
                             else
                             {
-                                products[k].Metrazh = parametter;
+                                products1[i].Metrazh = parametter;
 
                             }
 
 
 
                         }
-                        //Console.WriteLine(products[i].Metrazh+" "+products[i].CountOfRooms);
+                    }
+                        patern = @"""updateTime"":""(.*?)"",""real";
+                        rgx = new Regex(patern);
+                        List<string> updates1 = new List<string>();
+                        foreach (Match item in rgx.Matches(htmlCode))
+                        {
+                            updates1.Add(item.Value);
+                        }
+                        for (int l = 0; l < updates1.Count; l++)
+                        {
+                            updates1[l] = updates1[l].Replace(@"""updateTime"":""", "");
+                            updates1[l] = updates1[l].Replace(@",""real", "");
+                            products1[l].Updated = updates1[l];
+                            //Console.WriteLine(updates[i]);
+                        }
+                        patern = @",""addTime"":""(.*?)"",""";
+                        rgx = new Regex(patern);
+                        List<string> addd1 = new List<string>();
+                        foreach (Match item in rgx.Matches(htmlCode))
+                        {
+                            addd1.Add(item.Value);
+                        }
+                        for (int l = 0; l < addd1.Count; l++)
+                        {
+                            addd1[l] = addd1[l].Replace(@",""addTime"":""", "");
+                            addd1[l] = addd1[l].Replace(@""",""", "");
+                            products1[l].Created = addd1[l];
+                            //Console.WriteLine(addd[i]);
+                        }
 
-                    }
-                    patern = @"""updateTime"":""(.*?)"",""real";
-                    rgx = new Regex(patern);
-                    List<string> updates1 = new List<string>();
-                    foreach (Match item in rgx.Matches(htmlCode))
-                    {
-                        updates1.Add(item.Value);
-                    }
-                    for (int k = 0; k < updates1.Count; k++)
-                    {
-                        updates1[k] = updates1[k].Replace(@"""updateTime"":""", "");
-                        updates1[k] = updates1[k].Replace(@",""real", "");
-                        products1[k].Updated = updates1[k];
-                        //Console.WriteLine(updates[i]);
-                    }
-                    patern = @",""addTime"":""(.*?)"",""";
-                    rgx = new Regex(patern);
-                    List<string> addd1 = new List<string>();
-                    foreach (Match item in rgx.Matches(htmlCode))
-                    {
-                        addd1.Add(item.Value);
-                    }
-                    for (int k = 0; k < addd1.Count; k++)
-                    {
-                        addd1[k] = addd1[k].Replace(@",""addTime"":""", "");
-                        addd1[k] = addd1[k].Replace(@""",""", "");
-                        products1[k].Updated = addd1[k];
-                        //Console.WriteLine(addd1[k]);
-                    }
-                    products.AddRange(products1);
+                        products.AddRange(products1);
                     #endregion
                 }
             }
